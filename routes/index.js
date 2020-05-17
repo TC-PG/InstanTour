@@ -243,7 +243,7 @@ router.post("/forget", (req,res, next)=>{
 			let mailOptions = {
 				to: user.email,
 				from: "side.project.practice@gmail.com",
-				subject: "(YelpCamp) 密碼重置",
+				subject: "(InstanTour) 密碼重置",
 				text: "此為系統發送信件，您要求重置密碼，請點擊下方連結前往設定，\n" +
 				"http://" + req.headers.host + "/reset/" + token + "\n" + 
 				"此連結將於5分鐘後到期，如果您未要求重置密碼，請忽略此信件。"
@@ -332,7 +332,7 @@ router.post("/reset/:token", middleware.passwordValidation, (req, res)=>{
 			let mailOptions = {
 				to: user.email,
 				from: "side.project.practice@gmail.com",
-				subject: "(YelpCamp) 密碼重置成功",
+				subject: "(InstanTour) 密碼重置成功",
 				text: "此為系統發送之信件，您已成功重置密碼"				
 			};
 			smtpTransport.sendMail(mailOptions, function(err){				
