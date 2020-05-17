@@ -37,7 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose.connect('mongodb://localhost:27017/InstanTour', {useNewUrlParser: true, useUnifiedTopology: true});
+let DBurl = process.env.DATABASEURL || "mongodb://localhost:27017/InstanTour";
+// mongoose.connect('mongodb://localhost:27017/InstanTour', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(DBurl, {useNewUrlParser: true, useUnifiedTopology: true});
 // Make Mongoose use `findOneAndUpdate()`. Note that this option is `true`
 // by default, you need to set it to false.
 mongoose.set('useFindAndModify', false);
