@@ -1,0 +1,117 @@
+body{
+	background: #FAFAFA;
+	font-family: 'Noto Sans TC', sans-serif;	
+}
+.pwreminder{
+	color:red;
+	display:none;
+}
+
+#map {
+	height: 400px;
+	width: 100%;
+	margin-bottom:20px;
+}
+
+.thumbnail img{
+	width: 100%;
+	height:50%
+}
+
+.thumbnail {
+	padding: 0;
+	height: 85%;
+}
+
+.thumbnail .caption-full{
+	padding: 9px;
+	line-height:2em;
+	font-size: 18px;
+}
+
+.deleteForm {
+	display: inline;
+}
+
+
+.fix{
+	height:40px;
+	text-align:center;	
+}
+
+.mg-top{
+	margin-top:5em;
+}
+
+.form-group textarea{
+	resize:none;
+	height: 150px;
+}
+
+
+p.parafmt {
+	word-wrap: break-word;
+    white-space:pre-wrap;
+	margin-top:5px;
+}
+
+.rating-block{
+	background-color:white;
+	border:1px solid #EFEFEF;
+	padding:15px 15px 20px 15px;
+	border-radius:3px;
+	margin-bottom:10px;
+}
+
+.auth {
+	display:none;
+}
+
+table{
+	border:1px solid black; 
+	margin:0 auto; 
+	text-align:center;
+	width:100%
+	
+}
+
+table th {
+	text-align:center;
+	padding:1%
+	
+}
+
+table thead{
+	margin-bottom:10px;
+	border-bottom:1px solid gray;
+}
+
+td{
+	padding:1%;
+}
+
+.carousel{
+	background-image: url(../indexPage/carousel_3.jpg);
+	background-size:cover;		
+   	background-position: 0% 50%;
+	height:400px;	
+}
+@media (max-width: 600px) {
+	.carousel{
+    background-position: 50% 50%;
+  }
+}
+
+.articlePhoto{
+	cursor:zoom-in;
+}
+
+.articleFormFmt{
+	width:70%;
+	margin: 30px auto;
+}
+
+.userFormFmt{
+	width:55%;
+	margin:30px auto;
+}

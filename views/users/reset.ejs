@@ -1,0 +1,22 @@
+<%- include("../partials/header") %>
+	<div class="row">		
+		<div class="userFormFmt">
+			<h1 style="text-align: center">重置密碼</h1>
+			<form action="/reset/<%= token %>" method="post">
+				<div class="form-group">
+					<input class="form-control" type="password" name="password" placeholder="請輸入新密碼" required>
+					<span style="color:red">密碼至少六位數，須包含大小寫英文(a-z, A-Z)、數字及特殊符號(!@#$%^&*)</span>
+				</div>
+				<div class="form-group">
+					<input class="form-control" type="password" name="confirmPassword" placeholder="請確認密碼" required>
+				</div>	
+				<div class="form-group">
+					<button class="btn btn-lg btn-primary btn-block">確定</button>
+				</div>
+			</form>
+			<a href="/campgrounds">回首頁</a>			
+		</div>
+	</div>
+
+	
+<%- include("../partials/footer") %>

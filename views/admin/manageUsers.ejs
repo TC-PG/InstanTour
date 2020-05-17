@@ -1,0 +1,87 @@
+<%- include("../partials/header") %>
+
+<form id="seachForm" action="/users" method="get" class="form-inline" style="display:inline;">
+	<div class="input-group" style="margin-bottom:10px;">
+		<span class="input-group-btn">
+			<input type="submit" value="搜尋" class="btn btn-default" >
+		</span>
+		<input id="search" type="text" name="search" placeholder="搜尋使用者名稱" class="form-control">							
+	</div>
+</form>
+<% if(noMatch){ %>
+	<strong><span style="color:red;font-size: 16px"><%= noMatch %></span></strong>
+<% } %>
+<table>
+	<thead>
+		<tr>
+			<th>使用者名稱</th>
+			<th>註冊日期</th>	
+			<th>用戶身份</th>
+			<th>用戶狀態</th>
+			<th>停權用戶</th>
+		</tr>
+	</thead>
+	<tbody>
+	<% users.forEach(user => { %>
+		<div class="row">
+			<div >
+				<% if(user.isAdmin){ %> 
+					<tr>						
+						<td><strong><a href="/users/<%= user._id %>"><%=user.username %></a></strong></td>	
+						<td><strong><%= user.createdAt.toLocaleString() %></strong></td>	
+						<td><strong><span style="color:red;">管理員</span></strong></td>
+						<td><strong><span style="color:<%=  user.isSuspended ? 'red': 'black' %>"><%= user.isSuspended ? "停權": "活躍" %></span></strong></td>
+						<td>
+							<form action="/users/<%=user._id %>/suspend?_method=PUT" method="post" style="display:inline;">	
+								<div class="form-group" style="float:initial;display:inline;">
+									<input class="btn btn-sm btn-danger rmBtn" style="display:inline; width:80%; text-align:center"  type="submit" value="停權" />	 
+								</div> 
+							</form>
+						</td>
+					</tr>
+				<% } %>
+				
+			</div>
+		</div>	
+	<% }); %>
+	</tbody>	
+</table>
+
+<table>
+	<thead>
+		<tr>
+			<th>使用者名稱</th>
+			<th>註冊日期</th>	
+			<th>用戶身份</th>
+			<th>用戶狀態</th>
+			<th>停權用戶</th>
+		</tr>
+	</thead>
+	<tbody>
+	<% users.forEach(user => { %>
+		<div class="row">
+			<div >
+				<% if(!user.isAdmin) { %> 
+					<tr>
+						
+						<td><strong><a href="/users/<%= user._id %>"><%=user.username %></a></strong></td>	
+						<td><strong><%= user.createdAt.toLocaleString() %></strong></td>	
+						<td><strong><span>一般用戶</span></strong></td>
+						<td><strong><span style="color:<%=  user.isSuspended ? 'red': 'black' %>"><%= user.isSuspended ? "停權": "活躍" %></span></strong></td>
+						<td>
+							<form action="/users/<%=user._id %>/suspend?_method=PUT" method="post" style="display:inline;">	
+								<div class="form-group" style="float:initial;display:inline;">
+									<input class="btn btn-sm btn-danger rmBtn" style="display:inline; width:80%; text-align:center"  type="submit" value="停權" />	 
+								</div> 
+							</form>
+						</td>
+					</tr>
+				<% } %>
+				
+			</div>
+		</div>	
+	<% }); %>
+	</tbody>	
+</table>
+
+<%- include("../partials/footer") %>

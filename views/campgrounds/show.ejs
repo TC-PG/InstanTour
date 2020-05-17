@@ -1,0 +1,201 @@
+<%- include("../partials/header") %>
+	
+		<div class="row">
+			<div class="col-md-3">				
+				<div class="rating-block">
+					<% if(totalReviews === 0){%>
+						<h2>尚未有評論</h2>
+					<% }else{ %>
+						<!--rating-->
+						<h4>評等</h4>
+						<h2 class="bold padding-bottom-7"><%= Number(averageRating).toFixed(1) %> <small>/ 5</small></h2>
+						<h5><%= totalReviews %>則評論</h5>
+						<% for(let i = 0 ; i < Math.floor(Number(averageRating).toFixed(1)); i++){ %>	
+							<button type="button" class="btn btn-warning btn-sm" aria-label="Left Align">	
+							  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>	
+							</button>
+						<% } %> 
+						<%	for(let j = 0; j < Number(averageRating).toFixed(1) - Math.floor(Number(averageRating).toFixed(1)); j++){ %>
+							<button type="button" style="background: linear-gradient(to right, #f0ad4e <%= (Number(averageRating).toFixed(1) - Math.floor(Number(averageRating).toFixed(1)))*100 %>%, #f5f5f5 0%);"class="btn btn-warning btn-sm" aria-label="Left Align">	
+								<span class="glyphicon glyphicon-star" aria-hidden="true"></span>	
+							</button>
+						<%} %>
+					<% } %>
+					
+				</div>
+				<div id="map"></div>
+			</div>
+			<div class="col-md-9">
+				<div class="thumbnail">
+					<a data-lightbox="articlePhoto" href="../upload_photo/<%= campground.author.username %>/<%= campground._id %>/<%= campground.photo %>">
+						<img class="image-responsive articlePhoto" src="../upload_photo/<%= campground.author.username %>/<%= campground._id %>/<%= campground.photo %>">
+					</a>
+					<div class="caption-full">
+						<% if(campground.isLocked){ %>
+							<h1 style="color:red;text-align:center">此文章目前鎖定唯讀中</h1>
+						<% } %>
+						<h4><a><%= campground.name %></a></h4>
+						<p style="color:gray;"><%= campground.description %></p>
+						<p>
+							<em>-<a href="/users/<%= campground.author.id %>"><%= campground.author.username %></a> 發表於
+								<%= moment(campground.createdAt).locale("zh-tw").fromNow() %>
+							</em>
+						</p>
+						<% if((currentUser && campground.author.id.equals(currentUser._id)) || currentUser && currentUser.isAdmin){ %>
+							<a class="btn btn-sm btn-warning" href="/campgrounds/<%= campground._id %>/edit">編輯文章</a>
+							<form id="deletePost" class="deleteForm" action="/campgrounds/<%= campground._id %>?_method=DELETE" method="post">
+								<button class="btn btn-sm btn-danger">刪除文章</button>
+							</form>
+						<% }%>
+						<% if(currentUser && currentUser.isAdmin){ %>
+							<% if(!campground.isLocked) { %>
+								<form id="lockPost" class="lockForm" action="/campgrounds/<%= campground._id %>/lock?_method=put" method="post" style="display:inline">
+										<button class="btn btn-sm btn-danger">鎖定文章</button>
+								</form>
+							<% }else if(campground.isLocked){ %>
+								<form id="lockPost" class="lockForm" action="/campgrounds/<%= campground._id %>/lock?_method=put" method="post" style="display:inline">
+									<button class="btn btn-sm btn-success">解鎖文章</button>
+								</form>
+							<% }%>
+						<% }%>
+					</div>
+				</div>
+				<div class="well">
+					<div class="text-right">	
+						<a id="newCommentToggle" class="btn btn-success" style="margin-bottom:10px">
+							留言
+						</a>
+						<!-- New Comment Form-->
+						<form id="newCommentForm" action="/campgrounds/<%= campground._id %>/comments" method="post" style="display:none">
+							<!--rating-->
+							<div class="review-block-rate pull-left" style="margin-bottom:10px">
+								<span>給分</span>
+								<button type="button" class="1 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+								  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="2 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+								  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="3 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+								  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="4 btn btn-default btn-grey btn-xs ratingBtn" aria-label="Left Align">
+								  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="5 btn btn-default btn-grey btn-xs ratingBtn" aria-label="Left Align">
+								  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+								</button>
+							</div>
+							<input type ="text" name ="comment[rating]" class="rating" value="" readonly="readonly" style="display:none;">
+							<div class="form-group">
+								<textarea class="form-control newtxt" name="comment[text]"></textarea>		
+							</div>
+							<div class="form-group">
+								<button class="btn btn-lg btn-primary btn-block">送出</button>
+							</div>
+						</form>
+					</div>
+					<hr>
+					<% campground.comments.forEach((comment) => { %>
+						<div class="row">
+							<div class="col-md-12">								
+								<strong><a href="/users/<%= comment.author.id %>"><%= comment.author.username %></a></strong>
+								<!--show ratings-->
+								<div style="margin-left:10px; display:inline-block">
+									<!-- populate real ratings -->
+									<% for(let i = 0; i < parseInt(comment.rating); i++){ %>
+								 	 <span class="glyphicon glyphicon-star" aria-hidden="true" style="color:#f0ad4e"></span>
+									<% } %>
+									
+									<% for(let i = 0; i < (5 - parseInt(comment.rating)); i++){ %>
+									 <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+									<% } %>
+									
+								</div>
+								  <span class="pull-right"><%= moment(comment.createdAt).locale("zh-tw").fromNow() %></span>
+								<p class="parafmt"><%= comment.text %></p>
+								<% if((currentUser && comment.author.id.equals(currentUser._id)) || currentUser && currentUser.isAdmin){%>	
+								<div class="editOrDelete" style="margin-bottom:10px;">	
+									<a class="btn btn-sm btn-warning editCommentBtn" >
+										編輯
+									</a>	
+								<!--Delete Form-->
+									<form class="deleteForm" action="/campgrounds/<%= campground._id %>/comments/<%= comment._id %>?_method=DELETE" method="post">
+										<input type="submit" class="btn btn-sm btn-danger" value="刪除">
+									</form>		
+								</div>
+									<!--Edit Form-->
+									<form class="editCommentForm" action="/campgrounds/<%= campground._id %>/comments/<%= comment._id %>?_method=PUT" method="post" style="display:none;">	
+										<!--rating-->
+										<div class="review-block-rate pull-left" style="margin-bottom:10px">
+											<span>給分</span>
+											<button type="button" class="1 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+											  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+											</button>
+											<button type="button" class="2 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+											  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+											</button>
+											<button type="button" class="3 btn btn-default btn-xs ratingBtn" aria-label="Left Align">
+											  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+											</button>
+											<button type="button" class="4 btn btn-default btn-grey btn-xs ratingBtn" aria-label="Left Align">
+											  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+											</button>
+											<button type="button" class="5 btn btn-default btn-grey btn-xs ratingBtn" aria-label="Left Align">
+											  <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+											</button>
+										</div>
+										<input type ="text" name ="comment[rating]" class="rating" value="<%= comment.rating %>" readonly="readonly" style="display:none;">
+										<div class="form-group">
+											<textarea class="form-control newtxt" name="comment[text]"><%= comment.text %></textarea>		
+										</div>
+
+										<div class="form-group">
+											<button class="btn btn-lg btn-primary btn-block">送出</button>
+										</div>
+									</form>									
+								<% } %>
+							</div>
+						</div>						
+					<% }) %>
+				</div>
+			</div>			
+		</div>
+	
+	
+	
+
+	
+<script>
+  function initMap() {
+    const lat = <%= campground.lat %>;
+    const lng = <%= campground.lng %>;
+    const center = {lat: lat, lng: lng };
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: center,
+        scrollwheel: false
+    });
+    const contentString = `
+      <strong><%= campground.name %><br/>
+      <%= campground.location %></strong>
+      <p><%= campground.description %></p>
+    `;
+    const infowindow = new google.maps.InfoWindow({
+      content: contentString
+    });
+    const marker = new google.maps.Marker({
+        position: center,
+        map: map
+    });
+    marker.addListener('click', function() {
+      infowindow.open(map, marker);
+    });
+  }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9Ap6d58zKdLz4JivpR9y3prA-3pgDrP8&callback=initMap"></script>
+
+
+
+
+<%- include("../partials/footer") %>

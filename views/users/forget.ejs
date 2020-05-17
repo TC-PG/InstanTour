@@ -1,0 +1,21 @@
+<%- include("../partials/header") %>
+	<div class="row">		
+		<h1 style="text-align: center">忘記密碼</h1>
+		<div class="userFormFmt">
+			<form action="/forget" method="post">
+				<div class="form-group">
+					<input class="form-control" type="text" name="username" placeholder="請輸入使用者名稱" required>
+				</div>	
+				<div class="form-group">
+					<input class="form-control" type="email" name="email" placeholder="請輸入信箱" required>
+				</div>			
+				<div class="form-group">
+					<button class="btn btn-lg btn-primary btn-block">確定</button>
+				</div>
+			</form>
+			<a href="/login">返回</a>			
+		</div>
+	</div>
+
+	
+<%- include("../partials/footer") %>

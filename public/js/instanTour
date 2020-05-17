@@ -1,0 +1,183 @@
+if($(".alert").length > 0){
+	$(".alert").fadeOut(4000);
+}
+
+// password and confirmPassword validation display
+const regex =  RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{6,})");
+
+$("#password").on("input", function(){
+	if(!regex.test($(this).val())){		
+		$(this).next().slideDown('slow');
+	}	
+	$(this).on("input", function(){
+		if(regex.test($(this).val())){		
+			$(this).next().slideUp('slow');
+		}	
+	});
+});
+
+$("#password").on("focusout", function(){
+	if(regex.test($(this).val())){
+		$(this).next().slideUp('slow');
+	}else{
+		$(this).next().slideDown('slow');
+	}
+});
+
+$("#confirmPassword").on("input", function(){
+	$(this).on("input", function(){
+		if($(this).val() === $("#password").val()){
+			$(this).next().slideUp('slow');
+		}
+	});
+	if($(this).val() !== $("#password").val()){
+		$(this).next().slideDown('slow');
+	}
+});
+
+$("#confirmPassword").on("focusout", function(){
+	if($(this).val() === $("#password").val()){
+		$(this).next().slideUp('slow');
+	}else{
+		$(this).next().slideDown('slow');
+	}
+});
+
+//	handling form submit
+$("#registerForm").on("submit", function(e){
+	if($("#password").val() !== $("#confirmPassword").val()){
+		$("#confirmPassword").next().slideDown('slow');
+		e.preventDefault();
+	}else{
+		$(this).submit();
+	}
+});
+
+
+$("#newCommentToggle").on("click", function(){
+	$("#newCommentForm").toggle(600, function(){
+		$(this).find(".newtxt").focus();
+	});	
+});
+
+$(".editCommentBtn").on("click", function(){
+	const editOrDelete = $(this).parent();
+	const editCommentForm = editOrDelete.next();
+	editCommentForm.toggle(600, function(){
+		$(this).find(".newtxt").focus();
+	});
+});
+
+$("#modfiyProfileBtn").on("click", function(){
+	if($(this).text() === "修改會員資料"){
+		$(this).text("返回");
+	}else{
+		$(this).text("修改會員資料");
+	}
+	$("#modfiyPwdBtn").toggle()
+	$("#first").toggle(700);
+	$("#profileForm").toggle(700);
+	
+});
+
+$("#modfiyPwdBtn").on("click", function(){
+	if($(this).text() === "修改密碼"){
+		$(this).text("返回");
+	}else{
+		$(this).text("修改密碼");
+	}
+	$("#modfiyProfileBtn").toggle();
+	$("#first").toggle(700);
+	$("#modifyPwdForm").toggle(700);	
+});
+
+$(".submitBtn").on("click", function(){
+	console.log($(this).parent().parent("form"))
+	$(this).parent().parent("form").submit();
+	
+});
+
+
+
+$("#search").on("change", function(){	
+	$("#seachForm").submit();
+});
+
+// flag to determine ratings
+let flag = true;
+
+//rating btn mouseover
+$(".review-block-rate .ratingBtn").on("mouseover", function(){
+	let index = parseInt($(this).attr("class")[0]);
+	if(flag){
+		for(let i = 1; i <= index ; i++){		
+			let prevElementToToggle = $(this).parent().find(`.${i}`);
+			prevElementToToggle.addClass("btn-warning");		
+		}
+	}
+});
+
+
+//rating btn mouseout
+$(".review-block-rate .ratingBtn").on("mouseout", function(){
+	let index = parseInt($(this).attr("class")[0]);
+	if(flag){
+		for(let i = 1; i <= index ; i++){		
+			let prevElementToToggle = $(this).parent().find(`.${i}`);
+			prevElementToToggle.removeClass("btn-warning");		
+			prevElementToToggle.addClass("btn-default");		
+		}
+	}
+});
+
+
+//rating btn click
+$(".review-block-rate .ratingBtn").on("click", function(){
+	let index = parseInt($(this).attr("class")[0]);
+	
+	// flag set falsey to modify ratings after user already clicking previously
+	if(!flag){
+		for(let i = 1; i <= 5 ; i++){		
+			let prevElementToToggle = $(this).parent().find(`.${i}`);
+			prevElementToToggle.removeClass("btn-warning");		
+			prevElementToToggle.addClass("btn-default");			
+		}
+		flag = true;
+	}
+	// final ratings
+	if(flag){
+		for(let i = 1; i <= index ; i++){		
+			let prevElementToToggle = $(this).parent().find(`.${i}`);			
+			prevElementToToggle.addClass("btn-warning");		
+		}
+		let inputRating = $(this).parent().next();
+		inputRating.val(index);
+		flag = false;
+	}
+	
+});
+
+$("#newArticle").on("submit", function(e){
+	if(!confirm("即將發表新文章")){
+		e.preventDefault();		
+	}
+	
+});
+
+$("#editArticle").on("submit", function(e){
+	if(!confirm("即將修改文章")){
+		e.preventDefault();		
+	}
+	
+});
+
+$("#deletePost").on("submit", function(e){
+	if(!confirm("即將刪除文章")){
+		e.preventDefault();		
+	}
+	
+});
+
+
+
+
