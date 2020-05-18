@@ -34,7 +34,7 @@
 			<% campgrounds.forEach(function(campground){ %>
 				<div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
 					<div class="thumbnail" style="height:25em">
-						<img src="../upload_photo/<%= campground.author.username %>/<%= campground._id %>/<%= campground.photo %>">	
+						<img src="<%= campground.photo %>">	
 						<div class="caption">
 							<h4><%= campground.name.substring(0,20) %></h4>
 						</div>

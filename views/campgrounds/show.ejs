@@ -27,8 +27,8 @@
 			</div>
 			<div class="col-md-9">
 				<div class="thumbnail">
-					<a data-lightbox="articlePhoto" href="../upload_photo/<%= campground.author.username %>/<%= campground._id %>/<%= campground.photo %>">
-						<img class="image-responsive articlePhoto" src="../upload_photo/<%= campground.author.username %>/<%= campground._id %>/<%= campground.photo %>">
+					<a data-lightbox="articlePhoto" href="<%= campground.photo %>">
+						<img class="image-responsive articlePhoto" src="<%= campground.photo %>">
 					</a>
 					<div class="caption-full">
 						<% if(campground.isLocked){ %>

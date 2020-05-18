@@ -2,9 +2,32 @@ const express = require("express");
 const router = express.Router();
 const Campground = require("../models/campground");
 const middleware = require("../middleware");
-const fs_Extra = require('fs-extra');
-const path = require('path');
 const NodeGeoCoder = require("node-geocoder");
+//	multer
+const multer = require('multer');
+const storage = multer.diskStorage({
+  filename: function(req, file, callback) {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+const imageFilter = function (req, file, cb) {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/i)) {
+		 req.fileValidationError = '圖檔格式不符合';
+		  return cb(null, false, req.fileValidationError);	
+     
+    }
+    cb(null, true);
+};
+
+const upload = multer({ storage: storage, fileFilter: imageFilter})
+//	cloudinary
+const cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'dt4auxoqp', 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const options = {
   provider: 'google',
@@ -77,17 +100,6 @@ router.get("/", (req, res) =>{
 				}
 			});
 		});
-		
-		
-		
-		
-		// Campground.find({}, function(err, allCampgrounds){
-		// 	if(err){
-		// 		console.log(err);
-		// 	}else{
-		// 		res.render("campgrounds/index", {campgrounds: allCampgrounds, page: "campgrounds", noMatch: noMatch});		
-		// 	}
-		// });
 	}
 });
 
@@ -98,24 +110,27 @@ function editPhotoName(name){
 
 
 //	Campground create -- add new campground to DB
-router.post("/", middleware.isLoggedIn, async (req, res) =>{
+router.post("/", middleware.isLoggedIn, upload.single('upload_Photo'),async (req, res) =>{
 	try{
-		if(!req.files){
+		
+		if(req.fileValidationError){
+			req.flash("error", req.fileValidationError);
+			return res.redirect("back");
+
+		}
+		if(!req.file){
+			console.log(req.file)
 			req.flash("error", "請上傳照片");
 			return res.redirect("back");
 		}
-		
-		let photo = req.files.upload_Photo;
-		//	檢查上傳檔案mimetype為image/jpeg 或image/png
-		let flag = imageMIMECheck(photo);
-		if(!flag){
-			req.flash("error", "請上傳jpeg 或 png 格式之圖檔");
-			return res.redirect("back");
-		}
-		
+
+		let persistPhoto;
+		let imageId;
+		cloudinary.v2.uploader.upload(req.file.path, function(err,result) {
+		persistPhoto = result.secure_url;
+		imageId = result.public_id;
 		let name = req.body.name;
-		// let image = req.body.image;	// original for image url -- unused deletion	
-		// let price = req.body.price;	// unused deletion
+	
 		let description = req.body.description;
 		let author = {
 			id: req.user._id,
@@ -130,15 +145,12 @@ router.post("/", middleware.isLoggedIn, async (req, res) =>{
 			}
 			let lat = data[0].latitude;
 			let lng = data[0].longitude;
-			let location = data[0].formattedAddress;
-
-			let persistPhoto = editPhotoName(photo.name);
-			// console.log("persistPhoto = " +persistPhoto);
+			let location = data[0].formattedAddress;	
+		
 			let newCampground = {
-				name: name, 
-				// image: image, // original for image url -- unused deletion
-				photo: persistPhoto, 
-				// price: price, // unused deletion
+				name: name, 	
+				photo: persistPhoto,
+				imageId: imageId,
 				description: description, 
 				author: author,
 				location: location, 
@@ -146,19 +158,18 @@ router.post("/", middleware.isLoggedIn, async (req, res) =>{
 				lng: lng
 			};
 
-			Campground.create(newCampground, function(err, newlyCreatedCapmground){
-				if(err){
-					console.log(err);
-				}else{				
-					//	move the file to directory -- path = /public/upload_photo/作者名稱/Campground._id/照片名稱
-					photo.mv("./public/upload_photo/" + author.username + "//" + newlyCreatedCapmground._id + "//"+ persistPhoto);
-
-					// console.log("newlyCreatedCapmground:\n" + newlyCreatedCapmground);
-					res.redirect("/campgrounds");
-				}
+				Campground.create(newCampground, function(err, newlyCreatedCapmground){
+					if(err){
+						console.log(err);
+					}else{	
+						req.flash("success", "發表成功");
+						res.redirect("/campgrounds");
+					}
+				});
 			});
 		});
 	}catch(err){
+		console.log(err);
 		req.flash("error", "發生錯誤");
 		return res.redirect("back");
 	}
@@ -203,8 +214,12 @@ router.get("/:id/edit", middleware.checkCampgroundOwnership, middleware.isArticl
 
 // update campground
 
-router.put("/:id", middleware.checkCampgroundOwnership, middleware.isArticleLocked, async (req, res) =>{
-	try{
+router.put("/:id", middleware.checkCampgroundOwnership, middleware.isArticleLocked, upload.single('photo'), async (req, res) =>{
+	try{		
+		if(req.fileValidationError){
+			req.flash("error", req.fileValidationError);
+			return res.redirect("back");
+		}
 		//	geocoder
 		geocoder.geocode(req.body.location, function (err, data) {
 			if (err || !data.length) {
@@ -215,53 +230,34 @@ router.put("/:id", middleware.checkCampgroundOwnership, middleware.isArticleLock
 			let lng = data[0].longitude;
 			let location = data[0].formattedAddress;
 
-			let name = req.body.name;
-			let price = req.body.price;
-			let image = req.body.image;
-			let description = req.body.description;
-			let updatePhoto= "";
-			let updateData= {};
-			let photo={};
-			if(req.files){
-				photo = req.files.photo;
-				let flag = imageMIMECheck(photo);
-				if(!flag){
-					req.flash("error", "請上傳jpeg 或 png 格式之圖檔");
-					return res.redirect("back");
-				}
-				updatePhoto = editPhotoName(photo.name);
-				updateData = {
-					name:name,
-					price: price,
-					image:image,
-					photo: updatePhoto,
-					description: description,
-					location: location, 
-					lat: lat, 
-					lng: lng
-				};
-			}else{
-				updateData = {
-					name:name,
-					price: price,
-					image:image,				
-					description: description,
-					location: location, 
-					lat: lat, 
-					lng: lng
-				};
-			}		
-			// console.log("updatePhoto: " + photo.name)
-			// console.log("========================")
-
-			Campground.findByIdAndUpdate(req.params.id, updateData, (err, updatedCampground) =>{
+			let name = req.body.name;	
+			let description = req.body.description;	
+			
+			Campground.findById(req.params.id, async (err, campground) =>{
 				if(err){
+					req.flash("error", err.message);
 					res.redirect("/campgrounds");
 				}else{
-					if(req.files){
-						photo.mv("./public/upload_photo/" + updatedCampground.author.username + "//" + updatedCampground._id + "//"+ updatePhoto);
-					}				
-					// console.log("updatedCampground: "+ updatedCampground);
+					if(req.file){	
+						try{
+							await cloudinary.v2.uploader.destroy(campground.imageId);
+							let result = await cloudinary.v2.uploader.upload(req.file.path);
+							campground.photo = result.secure_url;
+							campground.imageId = result.public_id;	
+						}catch(err){
+							if(err){
+								req.flash("error", err.message);
+								return res.redirect("/campgrounds");
+							}
+						}
+					}
+					campground.name = name;
+					campground.description = description;
+					campground.location = location;
+					campground.lat = lat;
+					campground.lng = lng;
+					campground.save();
+					req.flash("success", "文章更新成功");
 					res.redirect("/campgrounds/" + req.params.id);
 				}
 			});
@@ -276,28 +272,23 @@ router.put("/:id", middleware.checkCampgroundOwnership, middleware.isArticleLock
 //	DESTROY Campground route
 
 router.delete("/:id", middleware.checkCampgroundOwnership, middleware.isArticleLocked, (req, res, next)=>{
-	// Campground.findByIdAndRemove(req.params.id, (err) =>{
-	// 	if(err){
-	// 		res.redirect("/campgrounds");
-	// 	}else{
-	// 		res.redirect("/campgrounds");
-	// 	}
-	// });
-	Campground.findById(req.params.id,  function(err, campground){
+	
+	Campground.findById(req.params.id,  async function(err, campground){
 		if(err){
 			// return next(err);
 			res.redirect("/campgrounds");
-		}else{
-			
-			
-			let deleteFolder = path.join(__dirname, "../public/upload_photo/" + campground.author.username+"/" + campground._id);			
-			if(fs_Extra.pathExistsSync(deleteFolder)){
-				fs_Extra.removeSync(deleteFolder);
+		}else{		
+			try{
+				await cloudinary.v2.uploader.destroy(campground.imageId);
+				campground.deleteOne();
+				req.flash("success", "文章刪除成功");
+				return res.redirect("/campgrounds");
+			}catch(err){
+				if(err){
+					req.flash("error", err.message);
+					return res.redirect("/campgrounds");
+				}		
 			}
-			campground.deleteOne();
-			
-			req.flash("success", "文章刪除成功");
-			res.redirect("/campgrounds");
 		}
 	});	
 });

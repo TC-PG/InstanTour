@@ -4,11 +4,35 @@ const passport = require("passport");
 const User = require("../models/user");
 const middleware = require("../middleware");
 const Campground = require("../models/campground");
-const fs_Extra = require('fs-extra');
-const path = require('path');
 const async = require("async");
 const nodemailer = require("nodemailer");
 const cryto = require("crypto");
+//	multer
+const multer = require('multer');
+const storage = multer.diskStorage({
+  filename: function(req, file, callback) {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+const imageFilter = function (req, file, cb) {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/i)) {
+		 req.fileValidationError = '圖檔格式不符合';
+		  return cb(null, false, req.fileValidationError);	
+     
+    }
+    cb(null, true);
+};
+
+const upload = multer({ storage: storage, fileFilter: imageFilter})
+//	cloudinary
+const cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'dt4auxoqp', 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 
 //	root route
 router.get("/", (req, res) => res.render("landing"));
@@ -125,55 +149,80 @@ router.get("/users/:id", (req,res)=>{
 });
 
 
-//	 photo name edit
-function editPhotoName(name){
-	return "avatar" + (name.substring(name.lastIndexOf("."))).toLowerCase();
-}
 //	user update avatar
 
-router.post("/users/:id", middleware.isLoggedIn, (req, res) =>{
-	if(!req.files){
+router.post("/users/:id", middleware.isLoggedIn, upload.single('avatar'), async (req, res) =>{
+
+	try{
+		if(req.fileValidationError){
+			req.flash("error", req.fileValidationError);
+			return res.redirect("back");
+		}
+	
+		if(!req.file){
+			console.log(req.file)
 			req.flash("error", "請上傳照片");
 			return res.redirect("back");
 		}
-	let avatar = req.files.avatar;	
-	let flag = true;
-		if((avatar.mimetype !== "image/jpeg") && flag){
-			flag = false;
-		}
-		if ((avatar.mimetype == "image/png")){
-			flag = true;
-		}
-		if(!flag){
-			req.flash("error", "請上傳jpeg 或 png 格式之圖檔");
-			return res.redirect("back");
-		}
-	let profileAvatar = editPhotoName(avatar.name);
-	
-	User.findByIdAndUpdate(req.params.id, {avatar: profileAvatar}, (err, user)=>{
+
+
+		User.findById(req.params.id, async (err, user) => {
+			try{
+				if(err){
+				req.flash("error", "發生錯誤");
+				return res.redirect("back");
+				}
+				if(!user.avatar){	// user avatar not existed	
+					console.log(req.file.path)	
+					let result = await cloudinary.v2.uploader.upload(req.file.path);
+						user.avatar = result.secure_url;
+						user.avatarId = result.public_id;
+
+				}else{	//	user avatar existed
+					await cloudinary.v2.uploader.destroy(user.avatarId);
+					let result = await cloudinary.v2.uploader.upload(req.file.path);
+					user.avatar = result.secure_url;
+					user.avatarId = result.public_id;
+				}
+				user.save();
+				return res.redirect("back");
+			}catch(err){
+				if(err){
+					req.flash("error", err.message);
+					return res.redirect("back");
+				}
+			}		
+		});
+	}catch(err){
 		if(err){
-			req.flash("error", "發生錯誤");
+			req.flash("error", err.message);
 			return res.redirect("back");
 		}
-		avatar.mv("./public/user_avatar/" + user.username + "//" + profileAvatar);
-		res.redirect("back");
-	});	
-	
+	}
+		
 });
 
 //	remove user profile pic
 router.put("/users/:id", middleware.isLoggedIn, function(req, res){	
-	User.findByIdAndUpdate(req.params.id, {avatar: ""}, function(err, user){
+	User.findById(req.params.id, async function(err, user){
 		if(err){
 			req.flash("error", "發生錯誤");
 			return res.redirect("back");
 		}
-		let deleteFolder = path.join(__dirname, "../public/user_avatar/" + user.username);	
-		if(fs_Extra.pathExistsSync(deleteFolder)){
-			fs_Extra.removeSync(deleteFolder);
+		
+		try{
+			await cloudinary.v2.uploader.destroy(user.avatarId);
+			user.avatar= "";
+			user.save();
+			req.flash("success", "相片移除成功");
+			return res.redirect("back");
+		}catch(err){
+			if(err){
+				req.flash("error", "發生錯誤");
+				return res.redirect("back");
+			}
 		}
-		req.flash("success", "相片移除成功");
-		return res.redirect("back");
+		
 	});
 });
 

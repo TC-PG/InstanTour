@@ -63,7 +63,7 @@
 			<% if(user.avatar === "" || user.avatar === undefined){ %>
 				<img src="../default_avatar/default_avatar.jpg"  alt="user profile image" style="width:100%; display:inline;border-radius:100%">
 			<% } else{ %>
-				<img src="../user_avatar/<%=user.username %>/<%=user.avatar %>"  alt="user profile image" style="width:100%;display:inline;border-radius:100%">
+				<img src="<%=user.avatar %>"  alt="user profile image" style="width:100%;display:inline;border-radius:100%">
 			<% } %>	
 			
 			<% if(user.equals(currentUser)){ %>
@@ -71,7 +71,7 @@
 					
 					<div class="form-group"  style="width:40%; display:inline-block">
 						<label for="avatar">加相片:</label>
-						<input id="avatar" class="form-control" type="file" name="avatar">						
+						<input id="avatar" class="form-control" type="file" name="avatar" accept="image/*">	
 					</div>
 						
 					 <div class="form-group" style="float:initial;display:inline;margin-left:10px">

@@ -4,7 +4,7 @@ require('dotenv').config();
 const express 	 = require("express"),
 	  app 	   	 = express(),
 	  bodyParser = require("body-parser"),
-	  fileUpload = require("express-fileupload"),
+	  // fileUpload = require("express-fileupload"),
 	  CAMPGROUND = require("./models/campground"),
 	  User = require("./models/user.js"),
 	  Comment = require("./models/comment"),
@@ -28,10 +28,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(__dirname + "/public"));
 app.use(methodOverride("_method"));
 app.use(flash());
-app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 },
-  createParentPath: true
-}));
+// app.use(fileUpload({
+//   limits: { fileSize: 50 * 1024 * 1024 },
+//   createParentPath: true
+// }));
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();

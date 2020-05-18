@@ -6,6 +6,7 @@ const campgroundSchema = new mongoose.Schema({
 	name:String,
 	// image:String, // original for image url -- unused deletion
 	photo: String,
+	imageId: String,
 	// price: String, // unused deletion
 	description: String,
 	location: String,

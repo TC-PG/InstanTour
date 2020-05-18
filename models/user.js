@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
 	resetPasswordToken: String,
 	resetPasswordExpires: Date,
 	avatar: String,
+	avatarId: String,
 	introduction:String,
 	isAdmin: {type: Boolean, default:false},
 	isSuspended: {type: Boolean, default:false}
