@@ -245,7 +245,7 @@ router.post("/forget", (req,res, next)=>{
 				from: "side.project.practice@gmail.com",
 				subject: "(InstanTour) 密碼重置",
 				text: "此為系統發送信件，您要求重置密碼，請點擊下方連結前往設定，\n" +
-				"http://" + req.headers.host + "/reset/" + token + "\n" + 
+				"https://" + req.headers.host + "/reset/" + token + "\n" + 
 				"此連結將於5分鐘後到期，如果您未要求重置密碼，請忽略此信件。"
 			};
 			smtpTransport.sendMail(mailOptions, function(err){
